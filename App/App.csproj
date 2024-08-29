@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StartupObject>App.Program</StartupObject>
+    <ApplicationIcon>Basic_red_dot.ico</ApplicationIcon>
+    <AssemblyName>JustAwake</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Basic_red_dot.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\User32Wrapper\User32Wrapper.csproj" />
+  </ItemGroup>
+
+</Project>
