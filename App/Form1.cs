@@ -1,4 +1,6 @@
+using Microsoft.Win32;
 using System.Resources;
+using System.Text.Json;
 using User32Wrapper;
 
 namespace App;
@@ -6,11 +8,12 @@ namespace App;
 public partial class Form1 : Form
 {
     const int LogsLimit = 100;
-
+    
+    private Settings _settings;
     private readonly NotifyIcon _notifyIcon = new();
     private readonly ResourceManager _resources = new(typeof(Form1));
     private readonly ContextMenuStrip _iconMenu = new();
-    private readonly Icon _appIcon;
+    private Icon _appIcon;
     private readonly System.Windows.Forms.Timer _timer = new();
     private readonly Queue<DateTime> _timestamps = new();
     private TimerState _timerState = TimerState.Stopped;
@@ -31,8 +34,6 @@ public partial class Form1 : Form
     public Form1()
     {
         InitializeComponent();
-        _appIcon = (_resources.GetObject("AppIcon") as Icon)!;
-        Icon = _appIcon;
 
         btnStop.Location = btnStart.Location;
         btnStop.Visible = false;
@@ -43,6 +44,7 @@ public partial class Form1 : Form
         btnStart.Click += BtnStart_Click;
         btnStop.Click += BtnStop_Click;
         FormClosing += Form1_FormClosing;
+        Load += Form1_Load;
 
         var menuStart = new ToolStripMenuItem("Start");
         menuStart.Name = "Start";
@@ -56,11 +58,49 @@ public partial class Form1 : Form
         var menuExit = new ToolStripMenuItem("Exit");
         menuExit.Click += MenuExit_Click;
         _iconMenu.Items.Add(menuExit);
+    }
+
+    private void Form1_Load(object? sender, EventArgs e)
+    {
+        LoadSettings();
+
+        _appIcon = (_resources.GetObject("AppIcon") as Icon)!;
+        Icon = _appIcon;
+
+        chkAutoStart.Checked = _settings!.AutoStart;
+        chkAutoStart.CheckedChanged += ChkAutoStart_CheckedChanged;
+        chkRunAtStartup.Checked = _settings!.RunAtStartup;
+        chkRunAtStartup.CheckedChanged += ChkRunAtStartup_CheckedChanged;
 
         _notifyIcon.Icon = _appIcon;
         _notifyIcon.Visible = true;
         _notifyIcon.ContextMenuStrip = _iconMenu;
         _notifyIcon.DoubleClick += NotifyIcon_DoubleClick;
+
+        if (_settings.AutoStart)
+            BtnStart_Click(null, new EventArgs());
+
+        if (_settings.AutoStart)
+        {
+            Visible = false;
+            ShowInTaskbar = false;
+        }
+    }
+
+    private void ChkRunAtStartup_CheckedChanged(object? sender, EventArgs e)
+    {
+        if (chkRunAtStartup.Checked)
+            RunAtStartup();
+        else
+            DontRunAtStartup();
+        _settings.RunAtStartup = chkRunAtStartup.Checked;
+        SaveSettings();
+    }
+
+    private void ChkAutoStart_CheckedChanged(object? sender, EventArgs e)
+    {
+        _settings.AutoStart = chkAutoStart.Checked;
+        SaveSettings();
     }
 
     private void MenuExit_Click(object? sender, EventArgs e)
@@ -71,6 +111,7 @@ public partial class Form1 : Form
     private void NotifyIcon_DoubleClick(object? sender, EventArgs e)
     {
         Show();
+        ShowInTaskbar = true;
     }
 
     private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
@@ -120,6 +161,40 @@ public partial class Form1 : Form
         _timestamps.Enqueue(DateTime.Now);
         var logs = _timestamps.Select(x => $"Mouse event sent at {x:dd/MM/yyyy HH:mm:ss}.");
         txtLogs.Text = string.Join("\r\n", logs);
+    }
+
+    private void LoadSettings()
+    {
+        var path = Path.Join(Path.GetDirectoryName(Application.ExecutablePath), "settings.json");
+        if (!File.Exists(path))
+            File.WriteAllText(path, "{}");
+        var file = File.Open(path, FileMode.Open, FileAccess.Read);
+        var reader = new StreamReader(file);
+        var content = reader.ReadToEnd();
+        file.Close();
+
+        _settings = JsonSerializer.Deserialize<Settings>(content)!;
+    }
+
+    private void SaveSettings()
+    {
+        var path = Path.Join(Path.GetDirectoryName(Application.ExecutablePath), "settings.json");
+        var content = JsonSerializer.Serialize(_settings);
+        File.WriteAllText(path, content);
+    }
+
+    private void RunAtStartup()
+    {
+        using var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true)!;
+        key.SetValue(Application.ProductName, $"\"{Application.ExecutablePath}\"");
+        key.Close();
+    }
+
+    private void DontRunAtStartup()
+    {
+        using var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true)!;
+        key.DeleteValue(Application.ProductName!, false);
+        key.Close();
     }
 }
 

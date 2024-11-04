@@ -33,6 +33,8 @@ partial class Form1
         txtLogs = new RichTextBox();
         numInterval = new NumericUpDown();
         label1 = new Label();
+        chkAutoStart = new CheckBox();
+        chkRunAtStartup = new CheckBox();
         ((System.ComponentModel.ISupportInitialize)numInterval).BeginInit();
         SuspendLayout();
         // 
@@ -86,11 +88,33 @@ partial class Form1
         label1.TabIndex = 4;
         label1.Text = "Time between events (in seconds)";
         // 
+        // chkAutoStart
+        // 
+        chkAutoStart.AutoSize = true;
+        chkAutoStart.Location = new Point(12, 348);
+        chkAutoStart.Name = "chkAutoStart";
+        chkAutoStart.Size = new Size(394, 32);
+        chkAutoStart.TabIndex = 5;
+        chkAutoStart.Text = "Start automatically when application runs";
+        chkAutoStart.UseVisualStyleBackColor = true;
+        // 
+        // chkRunAtStartup
+        // 
+        chkRunAtStartup.AutoSize = true;
+        chkRunAtStartup.Location = new Point(12, 386);
+        chkRunAtStartup.Name = "chkRunAtStartup";
+        chkRunAtStartup.Size = new Size(260, 32);
+        chkRunAtStartup.TabIndex = 6;
+        chkRunAtStartup.Text = "Run application at startup";
+        chkRunAtStartup.UseVisualStyleBackColor = true;
+        // 
         // Form1
         // 
         AutoScaleDimensions = new SizeF(11F, 28F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(666, 354);
+        ClientSize = new Size(666, 430);
+        Controls.Add(chkRunAtStartup);
+        Controls.Add(chkAutoStart);
         Controls.Add(label1);
         Controls.Add(numInterval);
         Controls.Add(txtLogs);
@@ -114,4 +138,6 @@ partial class Form1
     private RichTextBox txtLogs;
     private NumericUpDown numInterval;
     private Label label1;
+    private CheckBox chkAutoStart;
+    private CheckBox chkRunAtStartup;
 }
